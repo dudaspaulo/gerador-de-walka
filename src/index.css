@@ -138,97 +138,115 @@
 @layer components {
   /* Main glass container */
   .glass-container {
-    @apply rounded-2xl p-6 sm:p-10;
-    background-color: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.3);
+    @apply rounded-3xl p-6 sm:p-10;
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   }
 
   /* Inner glass blocks (cards) */
   .glass-block {
-    @apply rounded-xl p-4 sm:p-6;
-    background-color: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(149, 0, 195, 0.1);
+    @apply rounded-2xl p-6 sm:p-8;
+    background-color: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(149, 0, 195, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   }
 
   /* Subtle glass effect for cards */
   .glass-card {
-    @apply rounded-xl transition-all duration-300;
-    background-color: rgba(255, 255, 255, 0.9);
+    @apply rounded-2xl transition-all duration-300 p-6;
+    background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   }
 
   .glass-card:hover {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     transform: translateY(-2px);
   }
 
-  /* Form inputs with glass styling */
+  /* Form inputs - Clean SaaS style */
   .glass-input {
-    @apply w-full rounded-xl px-4 py-3 transition-all duration-200;
+    @apply w-full rounded-lg px-4 py-2.5 text-sm transition-all duration-200;
     background-color: #ffffff;
-    border: 1px solid hsl(var(--border) / 0.3);
+    border: 1px solid #e5e7eb;
+    color: #1f2937;
+  }
+
+  .glass-input::placeholder {
+    color: #9ca3af;
   }
 
   .glass-input:focus {
     @apply outline-none;
-    border-color: hsl(var(--secondary));
-    box-shadow: 0 0 0 4px rgba(149, 0, 195, 0.3);
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px rgba(16, 230, 225, 0.15);
+  }
+
+  /* Form labels - Clean SaaS style */
+  .form-label {
+    @apply text-xs font-semibold uppercase tracking-wide;
+    color: #6b7280;
   }
 
   /* Primary button (Cyan) */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200;
     background-color: hsl(var(--primary));
     color: hsl(var(--text-on-light));
+    box-shadow: 0 2px 8px rgba(16, 230, 225, 0.25);
   }
 
   .btn-primary:hover {
     background-color: hsl(179 87% 42%);
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(16, 230, 225, 0.4);
+    box-shadow: 0 4px 16px rgba(16, 230, 225, 0.35);
   }
 
   /* Secondary button (Purple) */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200;
     background-color: hsl(var(--secondary));
     color: hsl(var(--text-on-dark));
+    box-shadow: 0 2px 8px rgba(149, 0, 195, 0.25);
   }
 
   .btn-secondary:hover {
     background-color: hsl(290 100% 32%);
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(149, 0, 195, 0.4);
+    box-shadow: 0 4px 16px rgba(149, 0, 195, 0.35);
   }
 
   /* Ghost button */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold transition-all duration-200;
-    background-color: transparent;
-    color: hsl(var(--text-on-dark));
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200;
+    background-color: white;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .btn-ghost:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.6);
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 
   /* Danger button */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200;
     background-color: hsl(var(--destructive));
     color: white;
+    box-shadow: 0 2px 8px rgba(229, 97, 92, 0.25);
   }
 
   .btn-danger:hover {
     background-color: hsl(4 70% 55%);
+    box-shadow: 0 4px 12px rgba(229, 97, 92, 0.35);
   }
 
   /* Tab styling */

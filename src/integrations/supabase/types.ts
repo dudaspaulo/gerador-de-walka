@@ -14,7 +14,283 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      project_faqs: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          project_id: string
+          question: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          project_id: string
+          question: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_faqs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_gallery: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          image_url: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image_url: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image_url?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_gallery_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_plants: {
+        Row: {
+          availability_text: string | null
+          created_at: string
+          footage: string | null
+          id: string
+          image_url: string | null
+          package: string | null
+          project_id: string
+          style: string | null
+          title: string
+        }
+        Insert: {
+          availability_text?: string | null
+          created_at?: string
+          footage?: string | null
+          id?: string
+          image_url?: string | null
+          package?: string | null
+          project_id: string
+          style?: string | null
+          title: string
+        }
+        Update: {
+          availability_text?: string | null
+          created_at?: string
+          footage?: string | null
+          id?: string
+          image_url?: string | null
+          package?: string | null
+          project_id?: string
+          style?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_plants_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_prices: {
+        Row: {
+          badge_text: string | null
+          created_at: string
+          cta_link: string | null
+          features: string | null
+          id: string
+          price_value: string | null
+          project_id: string
+          title: string
+        }
+        Insert: {
+          badge_text?: string | null
+          created_at?: string
+          cta_link?: string | null
+          features?: string | null
+          id?: string
+          price_value?: string | null
+          project_id: string
+          title: string
+        }
+        Update: {
+          badge_text?: string | null
+          created_at?: string
+          cta_link?: string | null
+          features?: string | null
+          id?: string
+          price_value?: string | null
+          project_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_prices_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_tours: {
+        Row: {
+          created_at: string
+          id: string
+          iframe_url: string
+          label: string
+          project_id: string
+          style_category: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          iframe_url: string
+          label: string
+          project_id: string
+          style_category?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          iframe_url?: string
+          label?: string
+          project_id?: string
+          style_category?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tours_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          address_full: string | null
+          brand_color: string | null
+          builder_name: string | null
+          city_state: string | null
+          created_at: string
+          cta_link: string | null
+          delivery_date: string | null
+          email_contact: string | null
+          footage_range: string | null
+          hero_headline: string | null
+          hero_image_url: string | null
+          hero_subheadline: string | null
+          id: string
+          launch_date: string | null
+          location_desc: string | null
+          logo_url: string | null
+          map_embed_src: string | null
+          name: string
+          points_of_interest: string | null
+          seo_desc: string | null
+          seo_image_url: string | null
+          seo_title: string | null
+          slug: string
+          status: string | null
+          tech_specs: string | null
+          typologies_text: string | null
+          updated_at: string
+          whatsapp_link: string | null
+        }
+        Insert: {
+          address_full?: string | null
+          brand_color?: string | null
+          builder_name?: string | null
+          city_state?: string | null
+          created_at?: string
+          cta_link?: string | null
+          delivery_date?: string | null
+          email_contact?: string | null
+          footage_range?: string | null
+          hero_headline?: string | null
+          hero_image_url?: string | null
+          hero_subheadline?: string | null
+          id?: string
+          launch_date?: string | null
+          location_desc?: string | null
+          logo_url?: string | null
+          map_embed_src?: string | null
+          name: string
+          points_of_interest?: string | null
+          seo_desc?: string | null
+          seo_image_url?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: string | null
+          tech_specs?: string | null
+          typologies_text?: string | null
+          updated_at?: string
+          whatsapp_link?: string | null
+        }
+        Update: {
+          address_full?: string | null
+          brand_color?: string | null
+          builder_name?: string | null
+          city_state?: string | null
+          created_at?: string
+          cta_link?: string | null
+          delivery_date?: string | null
+          email_contact?: string | null
+          footage_range?: string | null
+          hero_headline?: string | null
+          hero_image_url?: string | null
+          hero_subheadline?: string | null
+          id?: string
+          launch_date?: string | null
+          location_desc?: string | null
+          logo_url?: string | null
+          map_embed_src?: string | null
+          name?: string
+          points_of_interest?: string | null
+          seo_desc?: string | null
+          seo_image_url?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: string | null
+          tech_specs?: string | null
+          typologies_text?: string | null
+          updated_at?: string
+          whatsapp_link?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
