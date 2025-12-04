@@ -14,11 +14,11 @@ export function ProjectCard({ project, onExport }: ProjectCardProps) {
       variant="card" 
       className="p-0 overflow-hidden group cursor-pointer"
     >
-      {/* Hero Image */}
+      {/* Cover Image - Uses dashboard_cover_image if available, fallback to hero */}
       <div className="relative h-40 overflow-hidden">
-        {project.hero_image_url ? (
+        {(project.dashboard_cover_image || project.hero_image_url) ? (
           <img 
-            src={project.hero_image_url} 
+            src={project.dashboard_cover_image || project.hero_image_url} 
             alt={project.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
