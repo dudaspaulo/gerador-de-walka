@@ -175,10 +175,6 @@
     color: #ffffff;
   }
 
-  .glass-input::placeholder {
-    color: #9ca3af;
-  }
-
   /* Form labels - Clean SaaS style */
   .form-label {
     @apply text-xs font-semibold uppercase tracking-wide;
