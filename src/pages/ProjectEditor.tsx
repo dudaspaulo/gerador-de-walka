@@ -302,7 +302,7 @@ export default function ProjectEditor() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all outline-none focus:ring-0 ${
                     activeTab === tab.id
                       ? 'bg-secondary text-white'
                       : 'bg-white/50 text-walka-dark hover:bg-white'
@@ -431,7 +431,7 @@ export default function ProjectEditor() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Favicon (ex: favicon.png)</Label>
+                    <Label>Favicon Filename</Label>
                     <Input
                       value={formData.favicon_filename}
                       onChange={(e) => handleInputChange('favicon_filename', e.target.value)}
@@ -440,7 +440,7 @@ export default function ProjectEditor() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Apple Touch Icon (ex: apple-touch-icon.png)</Label>
+                    <Label>Webclip Filename</Label>
                     <Input
                       value={formData.webclip_filename}
                       onChange={(e) => handleInputChange('webclip_filename', e.target.value)}

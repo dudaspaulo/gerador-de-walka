@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,8 +7,6 @@
 /* ========================================================================= */
 /* WALK'A HOTSITE GENERATOR - LIQUID GLASS DESIGN SYSTEM                     */
 /* ========================================================================= */
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -183,7 +183,7 @@
 
   /* Primary button (Cyan) */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 outline-none focus:ring-0;
     background-color: hsl(var(--primary));
     color: hsl(var(--text-on-light));
     box-shadow: 0 2px 8px rgba(16, 230, 225, 0.25);
@@ -197,9 +197,9 @@
 
   /* Secondary button (Purple) */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 outline-none focus:ring-0;
     background-color: hsl(var(--secondary));
-    color: hsl(var(--text-on-dark));
+    color: #ffffff;
     box-shadow: 0 2px 8px rgba(149, 0, 195, 0.25);
   }
 
@@ -211,7 +211,7 @@
 
   /* Ghost button */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 outline-none focus:ring-0;
     background-color: white;
     color: #374151;
     border: 1px solid #e5e7eb;
@@ -226,7 +226,7 @@
 
   /* Danger button */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 outline-none focus:ring-0;
     background-color: hsl(var(--destructive));
     color: white;
     box-shadow: 0 2px 8px rgba(229, 97, 92, 0.25);
