@@ -206,8 +206,10 @@ export type Database = {
           city_state: string | null
           created_at: string
           cta_link: string | null
+          dashboard_cover_image: string | null
           delivery_date: string | null
           email_contact: string | null
+          favicon_filename: string | null
           footage_range: string | null
           hero_headline: string | null
           hero_image_url: string | null
@@ -227,6 +229,7 @@ export type Database = {
           tech_specs: string | null
           typologies_text: string | null
           updated_at: string
+          webclip_filename: string | null
           whatsapp_link: string | null
         }
         Insert: {
@@ -236,8 +239,10 @@ export type Database = {
           city_state?: string | null
           created_at?: string
           cta_link?: string | null
+          dashboard_cover_image?: string | null
           delivery_date?: string | null
           email_contact?: string | null
+          favicon_filename?: string | null
           footage_range?: string | null
           hero_headline?: string | null
           hero_image_url?: string | null
@@ -257,6 +262,7 @@ export type Database = {
           tech_specs?: string | null
           typologies_text?: string | null
           updated_at?: string
+          webclip_filename?: string | null
           whatsapp_link?: string | null
         }
         Update: {
@@ -266,8 +272,10 @@ export type Database = {
           city_state?: string | null
           created_at?: string
           cta_link?: string | null
+          dashboard_cover_image?: string | null
           delivery_date?: string | null
           email_contact?: string | null
+          favicon_filename?: string | null
           footage_range?: string | null
           hero_headline?: string | null
           hero_image_url?: string | null
@@ -287,6 +295,7 @@ export type Database = {
           tech_specs?: string | null
           typologies_text?: string | null
           updated_at?: string
+          webclip_filename?: string | null
           whatsapp_link?: string | null
         }
         Relationships: []

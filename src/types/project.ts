@@ -26,6 +26,9 @@ export interface Project {
   seo_title: string;
   seo_desc: string;
   status: 'draft' | 'published';
+  favicon_filename: string;
+  webclip_filename: string;
+  dashboard_cover_image: string;
 }
 
 export interface ProjectGalleryItem {

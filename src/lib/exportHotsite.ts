@@ -2,17 +2,27 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { FullProject } from '@/types/project';
 
+// Helper to get unique styles from plants/tours that have content
+function getActiveStyles(items: { style?: string; style_category?: string }[]): string[] {
+  const styles = new Set<string>();
+  items.forEach(item => {
+    const style = item.style || item.style_category;
+    if (style) styles.add(style);
+  });
+  return Array.from(styles);
+}
+
 // Generate the HTML template
 function generateHTML(project: FullProject): string {
   const ctaLink = project.cta_link || project.whatsapp_link || '#';
   
-  // Generate points of interest HTML
+  // Generate points of interest HTML - using icon-check.svg instead of icon-local.svg
   const pointsHtml = project.points_of_interest
     .split('\n')
     .filter(line => line.trim())
     .map(point => `
           <div class="div-icon-txt-local">
-            <img alt="" src="images/icon-local.svg" loading="lazy" class="img-icon-local">
+            <img alt="" src="images/icon-check.svg" loading="lazy" class="img-icon-local">
             <h4 class="h4-local">${point.trim()}</h4>
           </div>`)
     .join('');
@@ -31,12 +41,19 @@ function generateHTML(project: FullProject): string {
     .map(img => `<img loading="lazy" src="${img.image_url}" alt="Galeria" class="gallery-image">`)
     .join('\n                      ');
 
+  // Get active styles from plants (only generate tabs for styles that have content)
+  const activePlantStyles = getActiveStyles(project.plants);
+  
+  // Generate plant style tabs HTML - only for styles with content
+  const plantStyleTabsHtml = activePlantStyles
+    .map((style, idx) => `<button class="btn${idx === 0 ? ' is-active' : ''}" data-style="${style.toLowerCase()}">${style}</button>`)
+    .join('\n          ');
+
   // Generate plants imgMap for JS
-  const imgMap: Record<string, Record<string, string>> = {
-    eco: { standard: '', basic: '', essential: '', design: '' },
-    slim: { standard: '', basic: '', essential: '', design: '' },
-    urban: { standard: '', basic: '', essential: '', design: '' },
-  };
+  const imgMap: Record<string, Record<string, string>> = {};
+  activePlantStyles.forEach(style => {
+    imgMap[style.toLowerCase()] = { standard: '', basic: '', essential: '', design: '' };
+  });
   
   project.plants.forEach(plant => {
     const style = plant.style.toLowerCase();
@@ -46,12 +63,19 @@ function generateHTML(project: FullProject): string {
     }
   });
 
-  // Generate tours HTML grouped by style
-  const toursByStyle: Record<string, typeof project.tours> = {
-    ECO: [],
-    SLIM: [],
-    URBAN: [],
-  };
+  // Get active styles from tours (only generate tabs for styles that have content)
+  const activeTourStyles = getActiveStyles(project.tours);
+
+  // Generate tour style tabs HTML - only for styles with content
+  const tourStyleTabsHtml = activeTourStyles
+    .map((style, idx) => `<button class="tab${idx === 0 ? ' is-active' : ''}" data-tab="${style.toLowerCase()}">${style}</button>`)
+    .join('\n      ');
+
+  // Generate tours HTML grouped by style - only for styles with content
+  const toursByStyle: Record<string, typeof project.tours> = {};
+  activeTourStyles.forEach(style => {
+    toursByStyle[style] = [];
+  });
   
   project.tours.forEach(tour => {
     if (toursByStyle[tour.style_category]) {
@@ -59,9 +83,11 @@ function generateHTML(project: FullProject): string {
     }
   });
 
-  const toursHtml = Object.entries(toursByStyle)
-    .filter(([_, tours]) => tours.length > 0)
-    .map(([style, tours], index) => {
+  const toursHtml = activeTourStyles
+    .map((style, index) => {
+      const tours = toursByStyle[style];
+      if (tours.length === 0) return '';
+      
       const buttons = tours
         .map((tour, i) => `<button class="btn${i === 0 ? ' is-active' : ''}" data-iframe="${tour.iframe_url}">${tour.label}</button>`)
         .join('\n        ');
@@ -78,6 +104,7 @@ function generateHTML(project: FullProject): string {
       </div>
     </div>`;
     })
+    .filter(Boolean)
     .join('\n');
 
   // Generate tech specs HTML
@@ -143,6 +170,21 @@ function generateHTML(project: FullProject): string {
     ? `+${phoneDisplay.slice(0, 2)} (${phoneDisplay.slice(2, 4)}) ${phoneDisplay.slice(4, 9)}-${phoneDisplay.slice(9)}`
     : phoneDisplay;
 
+  // Favicon and webclip filenames
+  const faviconFile = project.favicon_filename || 'favicon.png';
+  const webclipFile = project.webclip_filename || 'apple-touch-icon.png';
+
+  // Determine image path helper - if it looks like a URL use as-is, otherwise prefix with images/
+  const imgPath = (val: string) => {
+    if (!val) return '';
+    if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('images/')) return val;
+    return `images/${val}`;
+  };
+
+  const heroImagePath = imgPath(project.hero_image_url);
+  const logoPath = imgPath(project.logo_url);
+  const seoImagePath = imgPath(project.seo_image_url) || heroImagePath;
+
   return `<!DOCTYPE html>
 <html lang="pt-br" data-project="${project.slug}">
 <head>
@@ -153,17 +195,18 @@ function generateHTML(project: FullProject): string {
   <meta name="theme-color" content="${project.brand_color}">
   <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="icon" type="image/png" href="images/${faviconFile}">
+  <link rel="apple-touch-icon" href="images/${webclipFile}">
   <meta property="og:title" content="${project.seo_title || project.name}">
   <meta property="og:description" content="${project.seo_desc || project.hero_subheadline}">
-  <meta property="og:image" content="${project.seo_image_url || project.hero_image_url}">
+  <meta property="og:image" content="${seoImagePath}">
   <meta property="og:type" content="website">
 </head>
 <body>
   <div id="top"></div>
   <header class="site-header container">
     <div class="brand">
-      <img src="${project.logo_url}" alt="${project.name}" class="brand-logo">
+      <img src="${logoPath}" alt="${project.name}" class="brand-logo">
       <span class="brand-name">${project.name}</span>
     </div>
     <nav class="nav">
@@ -177,7 +220,7 @@ function generateHTML(project: FullProject): string {
     </nav>
   </header>
 
-  <section class="hero hero-cover" style="background-image: url('${project.hero_image_url}');">
+  <section class="hero hero-cover" style="background-image: url('${heroImagePath}');">
     <div class="hero-overlay"></div>
     <div class="container hero-grid">
       <div class="hero-copy">
@@ -218,8 +261,8 @@ function generateHTML(project: FullProject): string {
       <div class="div-galeria">
         <h2 class="h2">Imagens do ${project.name}</h2>
         <div class="div-galeria-imgs">
-          <img width="30" class="gallery-arrow-left" src="images/seta-esquerda.png">
-          <img width="30" class="gallery-arrow-right" src="images/seta-direita.png">
+          <img width="30" class="gallery-arrow-left" src="images/icon-seta-esquerda.png">
+          <img width="30" class="gallery-arrow-right" src="images/icon-seta-direita.png">
           <div class="galeria">
             <div class="main-gallery-container">
               <div class="horizontal-scroll-container">
@@ -236,8 +279,8 @@ function generateHTML(project: FullProject): string {
             <div id="image-modal" class="image-modal">
               <span class="close-modal">×</span>
               <img class="modal-image-content" id="modal-image">
-              <img src="images/seta-esquerda.png" class="modal-arrow modal-arrow-left">
-              <img src="images/seta-direita.png" class="modal-arrow modal-arrow-right">
+              <img src="images/icon-seta-esquerda.png" class="modal-arrow modal-arrow-left">
+              <img src="images/icon-seta-direita.png" class="modal-arrow modal-arrow-right">
             </div>
           </div>
         </div>
@@ -250,9 +293,7 @@ function generateHTML(project: FullProject): string {
       <div class="plantas-left">
         <h2 class="h2">Plantas — Studio</h2>
         <div class="tabs style-tabs">
-          <button class="btn is-active" data-style="eco">ECO</button>
-          <button class="btn" data-style="slim">SLIM</button>
-          <button class="btn" data-style="urban">URBAN</button>
+          ${plantStyleTabsHtml}
         </div>
         <div class="tabs package-tabs">
           <button class="btn pkg is-active" data-package="standard">Standard</button>
@@ -277,9 +318,7 @@ function generateHTML(project: FullProject): string {
   <section id="tours" class="container section">
     <h2 class="h2">Tour 360 por estilo</h2>
     <div class="tabs">
-      <button class="tab is-active" data-tab="eco">ECO</button>
-      <button class="tab" data-tab="slim">SLIM</button>
-      <button class="tab" data-tab="urban">URBAN</button>
+      ${tourStyleTabsHtml}
     </div>
     <div class="tab-panels">
       ${toursHtml}
@@ -322,7 +361,7 @@ function generateHTML(project: FullProject): string {
     <div class="container w-container">
       <div class="div-footer">
         <div class="div-logo">
-          <img width="116" src="${project.logo_url}" class="logo">
+          <img width="116" src="${logoPath}" class="logo">
         </div>
         <div class="div-fale-com-vendas">
           <h3 class="h5 h5-footer">Fale com o time de vendas!</h3>
@@ -351,7 +390,7 @@ function generateHTML(project: FullProject): string {
 </html>`;
 }
 
-// Generate the CSS with brand color injection
+// Generate the CSS with brand color injection - FIXED: button text colors, map height, plant alignment
 function generateCSS(brandColor: string): string {
   return `/* ========================================================================= */
 /* ESTILOS PADRONIZADOS - Walk'a Hotsite                                    */
@@ -412,16 +451,19 @@ a { color: inherit; text-decoration: none; }
 .list { padding-left: 18px; }
 .kpi h3 { color: var(--muted); font-size: 1rem; margin: 0 0 6px; }
 .kpi p { font-size: 1.15rem; margin: 0; }
+
+/* BUTTONS - FIXED: Ensure readable text on dark/colored backgrounds */
 .btn { appearance: none; background: #fff; color: var(--brand-2); border: 1px solid rgba(21, 35, 40, .12); border-radius: 999px; padding: 10px 16px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow); text-decoration: none !important; transition: transform .06s ease, box-shadow .2s ease, background .2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; }
-.btn.cta { background: var(--brand); color: #111; border-color: transparent; }
+.btn.cta { background: var(--brand); color: #ffffff !important; border-color: transparent; }
 .btn.ghost { background: #fff; border: 1px solid rgba(21, 35, 40, .18); color: var(--brand-2); }
 .btn:hover { transform: translateY(-1px); box-shadow: 0 12px 22px rgba(15, 23, 42, .12); }
-.btn.is-active { background: var(--brand); color: #111; border-color: transparent; }
+.btn.is-active { background: var(--brand); color: #ffffff !important; border-color: transparent; }
 .btn.pkg { font-size: 0.9rem; padding: 8px 14px; }
 .btn.pkg:hover { background: rgba(244, 123, 107, .12); }
+
 .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .tab { background: #fff; color: var(--brand-2); border: 1px solid rgba(21, 35, 40, .18); border-radius: 999px; padding: 8px 12px; cursor: pointer; box-shadow: var(--shadow); font-size: 1rem; font-weight: 500; }
-.tab.is-active { background: var(--brand); color: #111; border-color: transparent; }
+.tab.is-active { background: var(--brand); color: #ffffff !important; border-color: transparent; }
 .tab-panels > .tab-panel { display: none; }
 .tab-panels > .tab-panel.is-active { display: block; }
 .tour-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -486,7 +528,7 @@ a { color: inherit; text-decoration: none; }
 .div-icon-txt-price { display: flex; align-items: center; gap: 10px; }
 .div-icon-txt-price .img-icon-check { width: 16px; height: 16px; flex-shrink: 0; background-color: var(--brand); border-radius: 50%; padding: 3px; }
 .h4-price { color: var(--muted); font-size: 0.95rem; font-weight: 400; line-height: 1.5; margin: 0; }
-.bt-price { background: var(--brand); color: #111; font-weight: 700; border-radius: 999px; padding: 12px 24px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background .3s ease, transform .2s ease; width: 100%; margin-top: auto; }
+.bt-price { background: var(--brand); color: #ffffff !important; font-weight: 700; border-radius: 999px; padding: 12px 24px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background .3s ease, transform .2s ease; width: 100%; margin-top: auto; }
 .bt-price:hover { background: #f78e7e; transform: translateY(-2px); }
 .txt-bt-agenda { color: inherit; font-weight: inherit; text-decoration: none; }
 .img-icon-seta { width: 16px; transition: transform .2s ease; }
@@ -519,6 +561,8 @@ a { color: inherit; text-decoration: none; }
 .bt-back-top { background-color: var(--brand); color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 .bt-back-top::before { content: '↑'; font-size: 1.5rem; line-height: 1; }
 .bt-back-top:hover { background-color: #e06a5a; }
+
+/* PLANTS SECTION - FIXED: align-items: flex-start for top alignment */
 .section-plantas { background: var(--bg); padding: 60px 0; }
 .plantas-grid { display: grid; grid-template-columns: 1fr 400px; align-items: flex-start; gap: 40px; }
 .plantas-left { display: flex; flex-direction: column; gap: 20px; }
@@ -531,20 +575,22 @@ a { color: inherit; text-decoration: none; }
 .btn-agendar { width: 100%; justify-content: center; margin-bottom: 20px; margin-top: 10px; }
 .planta-card .h4 { font-weight: 700; color: var(--brand-2); margin: 20px 0 8px 0; font-size: 1rem; }
 .planta-desc { font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
+
+/* LOCATION SECTION - FIXED: Map height matches text column with flexbox stretch */
 .section-local { background-color: var(--cinza-1); padding: 60px 0; }
-.div-local { display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; max-width: 1160px; margin-inline: auto; padding-inline: 20px; }
+.div-local { display: flex; justify-content: space-between; align-items: stretch; gap: 40px; max-width: 1160px; margin-inline: auto; padding-inline: 20px; }
 .div-txt-local { display: flex; flex-direction: column; gap: 24px; width: 55%; flex-shrink: 0; }
 .div-txt-local .h2 { font-family: var(--padrão); font-weight: 600; font-size: clamp(22px, 3.6vw, 34px); color: var(--azul); margin: 0; margin-bottom: 8px; }
 .div-txt-local .h4 { font-family: var(--padrão); font-size: 1rem; font-weight: 400; color: var(--muted); line-height: 1.7; margin: 0; }
 .div-icon-txt-local { display: flex; align-items: center; gap: 12px; }
 .img-icon-local { background-color: var(--branco-lofteria); border-radius: 6px; padding: 6px; width: 32px; height: 32px; flex-shrink: 0; }
 .h4-local { color: var(--azul); font-size: 0.95rem; font-weight: 500; margin: 0; }
-.div-maps { width: 40%; flex-shrink: 0; }
-.map-embed { overflow: hidden; background: #fff; border: 1px solid #e7e7e7; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); position: relative; padding-top: 75%; }
+.div-maps { width: 40%; flex-shrink: 0; display: flex; flex-direction: column; }
+.map-embed { overflow: hidden; background: #fff; border: 1px solid #e7e7e7; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); position: relative; flex: 1; min-height: 400px; }
 .map-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
 @media (max-width: 1100px) { .gallery-image { width: 240px; height: 160px; } .gallery-arrow-left { left: -50px; } .gallery-arrow-right { right: -50px; } }
-@media (max-width: 991px) { .hero.hero-cover { padding: 30px 50px; } .section-local { padding: 30px 50px; } .gallery-arrow-left { left: -30px; } .gallery-arrow-right { right: -30px; } .image-row-2 { display: none !important; } .image-view { display: block; } .gallery-image { width: 200px; height: 140px; } .div-ficha-tecnica { flex-direction: column-reverse; gap: 32px; } .div-txt-ficha, .div-img-ficha { width: 100%; } .h4-infos, .h5-infos { font-size: 1rem; } .div-detalhe { flex-direction: column; align-items: flex-start; gap: 5px; text-align: left; } .h5-infos { text-align: left;} .div-local { flex-direction: column; gap: 32px; } .div-txt-local, .div-maps { width: 100%; } .map-embed { padding-top: 60%; } .plantas-grid { grid-template-columns: 1fr; } .planta-card { width: 100%; margin-top: 24px; align-self: stretch; } }
+@media (max-width: 991px) { .hero.hero-cover { padding: 30px 50px; } .section-local { padding: 30px 50px; } .gallery-arrow-left { left: -30px; } .gallery-arrow-right { right: -30px; } .image-row-2 { display: none !important; } .image-view { display: block; } .gallery-image { width: 200px; height: 140px; } .div-ficha-tecnica { flex-direction: column-reverse; gap: 32px; } .div-txt-ficha, .div-img-ficha { width: 100%; } .h4-infos, .h5-infos { font-size: 1rem; } .div-detalhe { flex-direction: column; align-items: flex-start; gap: 5px; text-align: left; } .h5-infos { text-align: left;} .div-local { flex-direction: column; gap: 32px; } .div-txt-local, .div-maps { width: 100%; } .map-embed { min-height: 300px; } .plantas-grid { grid-template-columns: 1fr; } .planta-card { width: 100%; margin-top: 24px; align-self: stretch; } }
 @media (max-width: 880px) { .hero.hero-cover { padding: 30px 40px; } .section-local { padding: 30px 40px; } .grid-2, .hero-grid { grid-template-columns: 1fr; } }
 @media (max-width: 768px) { .hero.hero-cover { padding: 35px 45px; } .section-local { padding: 35px 45px; } .div-tabelas { grid-template-columns: 1fr; gap: 25px; } }
 @media (max-width: 767px) { .hero.hero-cover { padding: 35px 40px; } .section-local { padding: 35px 40px; } .custom-accordion { font-size: 1rem; padding: 15px 40px 15px 20px; } .custom-panel { font-size: 0.95rem; } .custom-accordion::after { right: 20px; } .div-footer { flex-direction: column; align-items: center; text-align: center; gap: 25px; } .div-fale-com-vendas, .div-social-media { align-items: center; text-align: center; } .div-icons-social-media { justify-content: center; } }
@@ -552,14 +598,17 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 600px) { .hero.hero-cover { padding: 25px 30px; } .section-local { padding: 25px 30px; } .gallery-arrow-left, .gallery-arrow-right { display: none; } .gallery-image { width: 80vw; height: auto; } .horizontal-scroll-container { gap: 10px; } }`;
 }
 
-// Generate the JavaScript with imgMap injection
+// Generate the JavaScript with imgMap injection - FIXED: FAQ accordion with DOMContentLoaded
 function generateJS(project: FullProject): string {
-  // Build imgMap from plants
-  const imgMap: Record<string, Record<string, string>> = {
-    eco: { standard: '', basic: '', essential: '', design: '' },
-    slim: { standard: '', basic: '', essential: '', design: '' },
-    urban: { standard: '', basic: '', essential: '', design: '' },
-  };
+  // Get active styles from plants
+  const activePlantStyles = getActiveStyles(project.plants);
+  const activeTourStyles = getActiveStyles(project.tours);
+  
+  // Build imgMap from plants - only for active styles
+  const imgMap: Record<string, Record<string, string>> = {};
+  activePlantStyles.forEach(style => {
+    imgMap[style.toLowerCase()] = { standard: '', basic: '', essential: '', design: '' };
+  });
   
   project.plants.forEach(plant => {
     const style = plant.style.toLowerCase();
@@ -569,19 +618,24 @@ function generateJS(project: FullProject): string {
     }
   });
 
-  return `(function(){
-  // Tabs
+  // Build panels object only for active tour styles
+  const panelsInit = activeTourStyles
+    .map(style => `    ${style.toLowerCase()}: document.getElementById('panel-${style.toLowerCase()}')`)
+    .join(',\n');
+
+  return `// Wait for DOM to be fully loaded before attaching event listeners
+document.addEventListener("DOMContentLoaded", function() {
+  // Tour Tabs
   const tabs = document.querySelectorAll('.tab');
   const panels = {
-    eco: document.getElementById('panel-eco'),
-    slim: document.getElementById('panel-slim'),
-    urban: document.getElementById('panel-urban'),
+${panelsInit}
   };
+  
   tabs.forEach(t => t.addEventListener('click', () => {
-    tabs.forEach(x=>x.classList.remove('is-active'));
+    tabs.forEach(x => x.classList.remove('is-active'));
     t.classList.add('is-active');
     const key = t.dataset.tab;
-    Object.values(panels).forEach(p=>p && p.classList.remove('is-active'));
+    Object.values(panels).forEach(p => p && p.classList.remove('is-active'));
     if(panels[key]) panels[key].classList.add('is-active');
     const toursSec = document.getElementById('tours');
     if(toursSec) toursSec.scrollIntoView({behavior:'smooth', block:'start'});
@@ -593,7 +647,7 @@ function generateJS(project: FullProject): string {
     if(!wrap) return;
     group.querySelectorAll('.btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        group.querySelectorAll('.btn').forEach(b=>b.classList.remove('is-active'));
+        group.querySelectorAll('.btn').forEach(b => b.classList.remove('is-active'));
         btn.classList.add('is-active');
         const url = btn.dataset.iframe;
         if(url) wrap.src = url;
@@ -605,7 +659,7 @@ function generateJS(project: FullProject): string {
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', (e) => {
       const id = a.getAttribute('href').slice(1);
-      const el = document.getElementById(id) || document.querySelector(\`[name="\${id}"]\`);
+      const el = document.getElementById(id) || document.querySelector('[name="' + id + '"]');
       if(el){
         e.preventDefault();
         el.scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -623,69 +677,71 @@ function generateJS(project: FullProject): string {
   window.addEventListener('scroll', onScroll);
   onScroll();
 
-  // Accordion
-  document.querySelectorAll('.custom-accordion').forEach(acc => {
-    acc.addEventListener('click', function() {
+  // FAQ Accordion - FIXED: Proper event delegation after DOM load
+  const acc = document.getElementsByClassName("custom-accordion");
+  for (let i = 0; i < acc.length; i++) {
+    acc[i].addEventListener("click", function() {
       this.classList.toggle("active");
-      var panel = this.nextElementSibling;
-      if (panel.style.maxHeight) panel.style.maxHeight = null;
-      else panel.style.maxHeight = panel.scrollHeight + "px";
+      const panel = this.nextElementSibling;
+      if (panel.style.maxHeight) {
+        panel.style.maxHeight = null;
+      } else {
+        panel.style.maxHeight = panel.scrollHeight + "px";
+      }
     });
-  });
+  }
 
   // Plantas Logic
-  document.addEventListener("DOMContentLoaded", () => {
-    const styleBtns = document.querySelectorAll(".style-tabs .btn");
-    const packageBtns = document.querySelectorAll(".package-tabs .btn");
-    const img = document.getElementById("planta-img");
-    const nome = document.getElementById("planta-nome");
-    const desc = document.getElementById("planta-desc");
+  const styleBtns = document.querySelectorAll(".style-tabs .btn");
+  const packageBtns = document.querySelectorAll(".package-tabs .btn");
+  const img = document.getElementById("planta-img");
+  const nome = document.getElementById("planta-nome");
+  const desc = document.getElementById("planta-desc");
 
-    let currentStyle = "eco";
-    let currentPackage = "standard";
+  let currentStyle = "${activePlantStyles[0]?.toLowerCase() || 'eco'}";
+  let currentPackage = "standard";
 
-    const imgMap = ${JSON.stringify(imgMap, null, 2)};
+  const imgMap = ${JSON.stringify(imgMap, null, 2)};
 
-    const infoMap = {
-      standard: "Studio Standard - Imóvel entregue padrão",
-      basic: "Studio Basic - Solução prática e econômica para investidores que buscam agilidade na venda ou locação anual do imóvel",
-      essential: "Studio Essential - Pensado para imóveis de short stay, com foco em performance e controle de custos",
-      design: "Studio Design - Projetado para imóveis de estadia premium, com foco em estética refinada e alto valor percebido"
-    };
+  const infoMap = {
+    standard: "Studio Standard - Imóvel entregue padrão",
+    basic: "Studio Basic - Solução prática e econômica para investidores que buscam agilidade na venda ou locação anual do imóvel",
+    essential: "Studio Essential - Pensado para imóveis de short stay, com foco em performance e controle de custos",
+    design: "Studio Design - Projetado para imóveis de estadia premium, com foco em estética refinada e alto valor percebido"
+  };
 
-    function updatePlanta() {
-      if (!imgMap[currentStyle] || !imgMap[currentStyle][currentPackage]) {
-        console.warn(\`Imagem não encontrada para: \${currentStyle} \${currentPackage}\`);
-        return;
-      }
-      img.src = imgMap[currentStyle][currentPackage];
-      const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
-      nome.textContent = \`Studio \${capitalize(currentPackage)} — \${capitalize(currentStyle)}\`;
-      desc.textContent = infoMap[currentPackage];
+  function updatePlanta() {
+    if (!imgMap[currentStyle] || !imgMap[currentStyle][currentPackage]) {
+      console.warn("Imagem não encontrada para: " + currentStyle + " " + currentPackage);
+      return;
     }
+    if (img) img.src = imgMap[currentStyle][currentPackage];
+    const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+    if (nome) nome.textContent = "Studio " + capitalize(currentPackage) + " — " + capitalize(currentStyle);
+    if (desc) desc.textContent = infoMap[currentPackage];
+  }
 
-    styleBtns.forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.preventDefault();
-        styleBtns.forEach(b => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
-        currentStyle = btn.dataset.style;
-        updatePlanta();
-      });
+  styleBtns.forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      styleBtns.forEach(b => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      currentStyle = btn.dataset.style;
+      updatePlanta();
     });
-
-    packageBtns.forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.preventDefault();
-        packageBtns.forEach(b => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
-        currentPackage = btn.dataset.package;
-        updatePlanta();
-      });
-    });
-    
-    updatePlanta();
   });
+
+  packageBtns.forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      packageBtns.forEach(b => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      currentPackage = btn.dataset.package;
+      updatePlanta();
+    });
+  });
+  
+  updatePlanta();
 
   // Gallery Scroll
   const scrollContainer = document.querySelector(".horizontal-scroll-container");
@@ -706,31 +762,34 @@ function generateJS(project: FullProject): string {
   let currentIndex = 0;
 
   if(galleryImages.length > 0) {
-      galleryImages.forEach((img, index) => {
-        img.addEventListener("click", () => {
-          modal.classList.add("active");
-          modalImg.src = img.src;
-          currentIndex = index;
-        });
-      });
-      const showImage = (index) => {
-        if (index < 0) index = galleryImages.length - 1;
-        if (index >= galleryImages.length) index = 0;
+    galleryImages.forEach((img, index) => {
+      img.addEventListener("click", () => {
+        modal.classList.add("active");
+        modalImg.src = img.src;
         currentIndex = index;
-        modalImg.src = galleryImages[currentIndex].src;
-      };
-      if (modalArrowLeft) modalArrowLeft.addEventListener("click", () => showImage(currentIndex - 1));
-      if (modalArrowRight) modalArrowRight.addEventListener("click", () => showImage(currentIndex + 1));
-      if (closeModal) closeModal.addEventListener("click", () => modal.classList.remove("active"));
-      if (modal) modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("active"); });
-      document.addEventListener("keydown", (e) => {
-        if (!modal || !modal.classList.contains("active")) return;
-        if (e.key === "ArrowLeft") showImage(currentIndex - 1);
-        if (e.key === "ArrowRight") showImage(currentIndex + 1);
-        if (e.key === "Escape") modal.classList.remove("active");
       });
+    });
+    
+    const showImage = (index) => {
+      if (index < 0) index = galleryImages.length - 1;
+      if (index >= galleryImages.length) index = 0;
+      currentIndex = index;
+      modalImg.src = galleryImages[currentIndex].src;
+    };
+    
+    if (modalArrowLeft) modalArrowLeft.addEventListener("click", () => showImage(currentIndex - 1));
+    if (modalArrowRight) modalArrowRight.addEventListener("click", () => showImage(currentIndex + 1));
+    if (closeModal) closeModal.addEventListener("click", () => modal.classList.remove("active"));
+    if (modal) modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("active"); });
+    
+    document.addEventListener("keydown", (e) => {
+      if (!modal || !modal.classList.contains("active")) return;
+      if (e.key === "ArrowLeft") showImage(currentIndex - 1);
+      if (e.key === "ArrowRight") showImage(currentIndex + 1);
+      if (e.key === "Escape") modal.classList.remove("active");
+    });
   }
-})();`;
+});`;
 }
 
 // Main export function
@@ -743,21 +802,25 @@ export async function exportProjectAsZip(project: FullProject): Promise<void> {
   zip.folder('js')?.file('script.js', generateJS(project));
   
   // Create images folder with a readme
-  zip.folder('images')?.file('README.txt', `Place your icon images here:
-- favicon.png
+  zip.folder('images')?.file('README.txt', `Place your images here:
+
+Required icons:
+- ${project.favicon_filename || 'favicon.png'}
+- ${project.webclip_filename || 'apple-touch-icon.png'}
 - icon-chave.svg
 - icon-calendario.svg
 - icon-regua.svg
 - icon-cama.svg
-- icon-local.svg
 - icon-check.svg
 - icon-whats.svg
 - icon-seta.svg
-- seta-esquerda.png
-- seta-direita.png
+- icon-seta-esquerda.png
+- icon-seta-direita.png
 - ficha-img.png
 
-All gallery and plant images are referenced via absolute URLs from the database.`);
+Hero & content images:
+${project.hero_image_url && !project.hero_image_url.startsWith('http') ? `- ${project.hero_image_url}\n` : ''}${project.logo_url && !project.logo_url.startsWith('http') ? `- ${project.logo_url}\n` : ''}
+Gallery and plant images are referenced via their configured paths.`);
   
   // Generate zip and trigger download
   const content = await zip.generateAsync({ type: 'blob' });

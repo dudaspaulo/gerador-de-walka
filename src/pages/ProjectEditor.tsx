@@ -53,6 +53,9 @@ const defaultProject: Omit<Project, 'id' | 'created_at'> = {
   seo_title: '',
   seo_desc: '',
   status: 'draft',
+  favicon_filename: 'favicon.png',
+  webclip_filename: 'apple-touch-icon.png',
+  dashboard_cover_image: '',
 };
 
 export default function ProjectEditor() {
@@ -404,11 +407,11 @@ export default function ProjectEditor() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>URL do Logo</Label>
+                    <Label>Arquivo do Logo (ex: logo.png)</Label>
                     <Input
                       value={formData.logo_url}
                       onChange={(e) => handleInputChange('logo_url', e.target.value)}
-                      placeholder="https://..."
+                      placeholder="logo.png"
                       className="glass-input"
                     />
                   </div>
@@ -426,6 +429,33 @@ export default function ProjectEditor() {
                         <SelectItem value="published">Publicado</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Favicon (ex: favicon.png)</Label>
+                    <Input
+                      value={formData.favicon_filename}
+                      onChange={(e) => handleInputChange('favicon_filename', e.target.value)}
+                      placeholder="favicon.png"
+                      className="glass-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Apple Touch Icon (ex: apple-touch-icon.png)</Label>
+                    <Input
+                      value={formData.webclip_filename}
+                      onChange={(e) => handleInputChange('webclip_filename', e.target.value)}
+                      placeholder="apple-touch-icon.png"
+                      className="glass-input"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Imagem de Capa (Dashboard)</Label>
+                    <Input
+                      value={formData.dashboard_cover_image}
+                      onChange={(e) => handleInputChange('dashboard_cover_image', e.target.value)}
+                      placeholder="URL ou nome do arquivo para thumbnail no dashboard"
+                      className="glass-input"
+                    />
                   </div>
                 </div>
               </div>
@@ -459,11 +489,11 @@ export default function ProjectEditor() {
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label>URL da Imagem Hero</Label>
+                    <Label>Imagem Hero (nome do arquivo, ex: hero.jpg)</Label>
                     <Input
                       value={formData.hero_image_url}
                       onChange={(e) => handleInputChange('hero_image_url', e.target.value)}
-                      placeholder="https://..."
+                      placeholder="hero.jpg"
                       className="glass-input"
                     />
                   </div>
