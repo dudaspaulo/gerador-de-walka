@@ -1,9 +1,7 @@
-import { Link, useLocation } from "react-router-dom";
-import { Home, FolderOpen, Settings, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 
 export function Header() {
-  const location = useLocation();
 
   return (
     <header className="mb-8">
